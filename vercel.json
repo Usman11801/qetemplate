@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "REACT_APP_FIREBASE_API_KEY": "@react_app_firebase_api_key",
+    "REACT_APP_FIREBASE_AUTH_DOMAIN": "@react_app_firebase_auth_domain",
+    "REACT_APP_FIREBASE_PROJECT_ID": "@react_app_firebase_project_id",
+    "REACT_APP_FIREBASE_STORAGE_BUCKET": "@react_app_firebase_storage_bucket",
+    "REACT_APP_FIREBASE_MESSAGING_SENDER_ID": "@react_app_firebase_messaging_sender_id",
+    "REACT_APP_FIREBASE_APP_ID": "@react_app_firebase_app_id",
+    "REACT_APP_FIREBASE_MEASUREMENT_ID": "@react_app_firebase_measurement_id",
+    "SENDGRID_API_KEY": "@sendgrid_api_key",
+    "STRIPE_SECRET_KEY": "@stripe_secret_key",
+    "STRIPE_PUBLISHABLE_KEY": "@stripe_publishable_key"
+  }
+}
