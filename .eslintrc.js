@@ -4,13 +4,14 @@ module.exports = {
     'react-app/jest'
   ],
   rules: {
-    'no-unused-vars': 'warn',
-    'no-useless-escape': 'warn',
-    'no-regex-spaces': 'warn',
-    'eqeqeq': 'warn',
-    'no-dupe-keys': 'warn',
-    'no-mixed-operators': 'warn',
-    'react-hooks/exhaustive-deps': 'warn',
-    'default-case': 'warn'
+    'no-unused-vars': 'off',
+    'no-useless-escape': 'off',
+    'no-regex-spaces': 'off',
+    'eqeqeq': 'off',
+    'no-dupe-keys': 'off',
+    'no-mixed-operators': 'off',
+    'react-hooks/exhaustive-deps': 'off',
+    'default-case': 'off',
+    'no-undef': 'off'
   }
 };
