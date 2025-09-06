@@ -208,11 +208,22 @@ function App() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const backend = isMobile ? TouchBackend : HTML5Backend;
 
-  return (
-    <DndProvider backend={backend}>
-      <ToastProvider>
-        <Router>
-          <Routes>
+  // Add error boundary and debugging
+  useEffect(() => {
+    console.log('App component mounted');
+    console.log('Firebase config:', {
+      apiKey: process.env.REACT_APP_FIREBASE_API_KEY ? 'Set' : 'Missing',
+      authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN ? 'Set' : 'Missing',
+      projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID ? 'Set' : 'Missing',
+    });
+  }, []);
+
+  try {
+    return (
+      <DndProvider backend={backend}>
+        <ToastProvider>
+          <Router>
+            <Routes>
             {/* Root Route - Redirects based on auth state */}
             <Route path="/" element={<HomeRedirect />} />
 
@@ -339,7 +350,18 @@ function App() {
         </Router>
       </ToastProvider>
     </DndProvider>
-  );
+    );
+  } catch (error) {
+    console.error('App initialization error:', error);
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h1>Error Loading App</h1>
+        <p>There was an error initializing the application.</p>
+        <p>Error: {error.message}</p>
+        <button onClick={() => window.location.reload()}>Reload Page</button>
+      </div>
+    );
+  }
 }
 
 export default App;
