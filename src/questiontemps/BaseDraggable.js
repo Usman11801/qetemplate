@@ -23,6 +23,8 @@ const BaseDraggable = ({
   onDragStart,
   onDragStop: customDragStop,
   disableDragging = false,
+  zIndex = 1,
+  onZIndexChange,
 }) => {
   const [dimensions, setDimensions] = useState({
     width: width || style.width || 320,
@@ -52,9 +54,20 @@ const BaseDraggable = ({
     typeof maxBottom !== "undefined" ? maxBottom : CONTAINER_HEIGHT;
   const maxHeight = allowedBottom - (position.top || 0);
 
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onZIndexChange) {
+      onZIndexChange(id);
+    }
+  };
+
   const handleDragStart = (e, d) => {
     if (onDragStart) {
       onDragStart(e, d);
+    }
+    // Bring to front when starting to drag
+    if (onZIndexChange) {
+      onZIndexChange(id);
     }
   };
 
@@ -130,6 +143,7 @@ const BaseDraggable = ({
       onDragStart={handleDragStart}
       onDragStop={handleDragStop}
       onResizeStop={handleResizeStop}
+      onTouchStart={handleClick}
       minWidth={minWidth}
       minHeight={minHeight}
       maxHeight={maxHeight}
@@ -137,7 +151,7 @@ const BaseDraggable = ({
       enableResizing={{
         bottomRight: true,
       }}
-      cancel="input" //THIS IS FIX
+      cancel="input, button, [data-nodrag], .no-drag, textarea, select" // Prevent dragging on interactive elements
       resizeHandleStyles={{
         bottomRight: { cursor: "se-resize" },
       }}
@@ -155,8 +169,10 @@ const BaseDraggable = ({
       style={{
         opacity: 1,
         transition: "box-shadow 0.2s",
+        zIndex: zIndex,
         ...style,
       }}
+      onClick={handleClick}
     >
       <div className="w-full h-full cursor-grab active:cursor-grabbing">
         {onDelete && (

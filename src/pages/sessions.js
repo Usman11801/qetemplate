@@ -15,6 +15,7 @@ import {
   query,
   where,
   deleteField,
+  writeBatch,
 } from "firebase/firestore";
 import {
   Copy,
@@ -280,17 +281,16 @@ const Sessions = () => {
   }, [formId]);
   const createSession = async () => {
     try {
-      // Check current number of sessions for this formId
-      const sessionsRef = collection(db, "sessions");
-      const querySnapshot = await getDocs(sessionsRef);
-      const currentSessions = querySnapshot.docs.filter((doc) => {
-        const docMatches = doc.id.startsWith(formId);
-        const formIdMatches = doc.data().formId === formId;
-        return docMatches || formIdMatches;
-      });
+      // Optimized session counting - only query sessions for this specific formId
+      const sessionsQuery = query(
+        collection(db, "sessions"),
+        where("formId", "==", formId)
+      );
+      const querySnapshot = await getDocs(sessionsQuery);
+      const currentSessionsCount = querySnapshot.size;
 
       const SESSION_LIMIT = 5; // Set the session limit to 5
-      if (currentSessions.length >= SESSION_LIMIT) {
+      if (currentSessionsCount >= SESSION_LIMIT) {
         addToast(
           `Maximum of ${SESSION_LIMIT} sessions reached for this form!`,
           "warning"
@@ -300,14 +300,16 @@ const Sessions = () => {
 
       const uniqueSessionId = `${formId}-${Date.now()}`;
       const sessionDocRef = doc(db, "sessions", uniqueSessionId);
-      const formDocRef = doc(db, "forms", formId);
-      const formSnap = await getDoc(formDocRef);
+      
+      // Fetch form data and questions in parallel for better performance
+      const [formSnap, questionsSnap] = await Promise.all([
+        getDoc(doc(db, "forms", formId)),
+        getDocs(collection(db, "forms", formId, "questions"))
+      ]);
+      
       if (!formSnap.exists()) throw new Error("Form not found");
       const formDataSnapshot = formSnap.data();
 
-      const questionsSnap = await getDocs(
-        collection(db, "forms", formId, "questions")
-      );
       let loadedQuestions = [];
       if (!questionsSnap.empty) {
         loadedQuestions = questionsSnap.docs
@@ -332,7 +334,12 @@ const Sessions = () => {
         enableShowAnswers: false,
         enablePriceAward: false,
       };
-      await setDoc(sessionDocRef, sessionData);
+      
+      // Use batch write for better performance
+      const batch = writeBatch(db);
+      batch.set(sessionDocRef, sessionData);
+      await batch.commit();
+      
       setSessions((prev) => [{ ...sessionData, id: uniqueSessionId }, ...prev]);
       setActiveSession({ ...sessionData, id: uniqueSessionId });
       setDeadlineInput("");

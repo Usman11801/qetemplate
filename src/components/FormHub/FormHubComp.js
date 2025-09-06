@@ -94,6 +94,28 @@ const EnhancedFormHub = ({
     { id: "other", name: "Fun & Others", icon: <Sparkles size={20} />, color: "from-indigo-500 to-purple-500" },
   ];
 
+  // Filter forms based on selected category and search term
+  const getFilteredForms = (formsList) => {
+    let filtered = formsList;
+    
+    // Filter by category
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(form => form.category === selectedCategory);
+    }
+    
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(form => 
+        form.formTitle?.toLowerCase().includes(term) ||
+        form.formDescription?.toLowerCase().includes(term) ||
+        form.category?.toLowerCase().includes(term)
+      );
+    }
+    
+    return filtered;
+  };
+
   // Fetch user activity for personalization
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -813,7 +835,7 @@ const EnhancedFormHub = ({
   const ExploreDrawer = () => (
     <div
       className={`
-        fixed inset-y-0 left-0 w-80 bg-white shadow-2xl z-50
+        fixed inset-y-0 left-0 w-96 bg-white shadow-2xl z-50
         transform transition-transform duration-500 ease-out
         ${showExploreDrawer ? "translate-x-0" : "-translate-x-full"}
       `}
@@ -845,7 +867,7 @@ const EnhancedFormHub = ({
         </div>
         
         {/* Categories */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="p-6 border-b border-gray-200">
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
             Categories
           </h3>
@@ -880,6 +902,50 @@ const EnhancedFormHub = ({
                 {React.cloneElement(category.icon, { size: 20 })}
                 <span className="font-medium">{category.name}</span>
               </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Forms Grid */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+            Forms ({getFilteredForms(forms).length})
+          </h3>
+          
+          <div className="grid grid-cols-1 gap-3">
+            {getFilteredForms(forms).map((form) => (
+              <div
+                key={form.id}
+                onClick={() => {
+                  onUseTemplate(form);
+                  setShowExploreDrawer(false);
+                }}
+                className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all duration-300 group"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-300">
+                    {form.title.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 truncate group-hover:text-purple-700 transition-colors">
+                      {form.title}
+                    </h4>
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                      {form.description || "No description available"}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                        {form.category}
+                      </span>
+                      {form.isPublic && (
+                        <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                          Public
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -929,7 +995,7 @@ const EnhancedFormHub = ({
           title="For You"
           subtitle="Personalized recommendations based on your interests"
           icon={<Sparkles />}
-          forms={recommendedForms}
+          forms={getFilteredForms(recommendedForms)}
           scrollRef={scrollRefs.recommended}
           showAdminEdit={true}
         />
@@ -939,7 +1005,7 @@ const EnhancedFormHub = ({
           title="Trending Now"
           subtitle="Most popular templates this week"
           icon={<TrendingUp />}
-          forms={trendingForms}
+          forms={getFilteredForms(trendingForms)}
           scrollRef={scrollRefs.trending}
         />
         
@@ -948,7 +1014,7 @@ const EnhancedFormHub = ({
           title="New Arrivals"
           subtitle="Fresh templates added recently"
           icon={<Clock />}
-          forms={newForms}
+          forms={getFilteredForms(newForms)}
           scrollRef={scrollRefs.new}
         />
         

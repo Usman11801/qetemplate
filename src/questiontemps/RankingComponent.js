@@ -580,9 +580,17 @@ export default function RankingComponent({
                   e.stopPropagation();
                   setReorderMode(true); // disable parent drag
                   e.dataTransfer.setData("text/plain", String(idx));
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  if (!reorderMode) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.dataTransfer.dropEffect = "move";
                 }}
                 onDrop={(e) => {
                   if (!reorderMode) return;
+                  e.preventDefault();
                   handleDrop(e, idx);
                   e.stopPropagation();
                   setReorderMode(false); // re-enable parent drag
@@ -600,6 +608,7 @@ export default function RankingComponent({
                     setReorderMode(true);
                   }}
                   onTouchStart={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     setReorderMode(true);
                   }}

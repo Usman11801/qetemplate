@@ -28,6 +28,56 @@ import { getUserData } from "../../services/userService";
 import { httpsCallable } from "firebase/functions";
 import axios from "axios";
 
+// Memoized function to process form snapshot for better performance
+const processFormSnapshot = (formSnapshot) => {
+  return {
+    ...formSnapshot,
+    questions: formSnapshot.questions
+      .map((question) => ({
+        ...question,
+        components: question.components.map((comp) => {
+          if (comp.type === "text") {
+            return {
+              ...comp,
+              text: {
+                text: comp.text?.text || comp.text || "",
+                format: {
+                  ...(comp.text?.format || comp.format || {}),
+                  bold:
+                    comp.text?.format?.bold ??
+                    comp.format?.bold ??
+                    false,
+                  italic:
+                    comp.text?.format?.italic ??
+                    comp.format?.italic ??
+                    false,
+                  align:
+                    comp.text?.format?.align ??
+                    comp.format?.align ??
+                    "left",
+                  size:
+                    comp.text?.format?.size ??
+                    comp.format?.size ??
+                    "text-base",
+                  color:
+                    comp.text?.format?.color ??
+                    comp.format?.color ??
+                    "text-gray-900",
+                  font:
+                    comp.text?.format?.font ??
+                    comp.format?.font ??
+                    "Arial",
+                },
+              },
+            };
+          }
+          return comp;
+        }),
+      }))
+      .sort((a, b) => (a.order || 0) - (b.order || 0)),
+  };
+};
+
 export const Quiz = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
@@ -157,18 +207,57 @@ export const Quiz = () => {
           return;
         }
 
+        // Check if we have cached session data to avoid redundant loading
+        const cachedSessionData = sessionStorage.getItem(`sessionData_${sessionId}`);
+        let sessionData;
+        
+        if (cachedSessionData) {
+          try {
+            sessionData = JSON.parse(cachedSessionData);
+            // Check if cached data is still valid (less than 5 minutes old)
+            const cacheTime = sessionStorage.getItem(`sessionCacheTime_${sessionId}`);
+            if (cacheTime && Date.now() - parseInt(cacheTime) < 5 * 60 * 1000) {
+              console.log("Using cached session data");
+            } else {
+              // Cache expired, fetch fresh data
+              const sessionRef = doc(db, "sessions", sessionId);
+              const sessionSnap = await getDoc(sessionRef);
+              if (!sessionSnap.exists()) {
+                throw new Error("Session not found");
+              }
+              sessionData = sessionSnap.data();
+              // Update cache
+              sessionStorage.setItem(`sessionData_${sessionId}`, JSON.stringify(sessionData));
+              sessionStorage.setItem(`sessionCacheTime_${sessionId}`, Date.now().toString());
+            }
+          } catch (error) {
+            console.warn("Error parsing cached session data, fetching fresh data:", error);
+            const sessionRef = doc(db, "sessions", sessionId);
+            const sessionSnap = await getDoc(sessionRef);
+            if (!sessionSnap.exists()) {
+              throw new Error("Session not found");
+            }
+            sessionData = sessionSnap.data();
+            // Update cache
+            sessionStorage.setItem(`sessionData_${sessionId}`, JSON.stringify(sessionData));
+            sessionStorage.setItem(`sessionCacheTime_${sessionId}`, Date.now().toString());
+          }
+        } else {
+          const sessionRef = doc(db, "sessions", sessionId);
+          const sessionSnap = await getDoc(sessionRef);
+          if (!sessionSnap.exists()) {
+            throw new Error("Session not found");
+          }
+          sessionData = sessionSnap.data();
+          // Cache the data
+          sessionStorage.setItem(`sessionData_${sessionId}`, JSON.stringify(sessionData));
+          sessionStorage.setItem(`sessionCacheTime_${sessionId}`, Date.now().toString());
+        }
+
         const canProceed = await checkQuizStatus(sessionId, navigate);
         if (!canProceed) {
           return;
         }
-
-        const sessionRef = doc(db, "sessions", sessionId);
-        const sessionSnap = await getDoc(sessionRef);
-        if (!sessionSnap.exists()) {
-          throw new Error("Session not found");
-        }
-
-        const sessionData = sessionSnap.data();
 
         const leaderboardEnabled = sessionData.leaderboardEnabled || false;
         const deadline = sessionData.deadline || null;
@@ -197,52 +286,23 @@ export const Quiz = () => {
         sessionStorage.setItem(`formId_${sessionId}`, formId);
 
         if (sessionData.formSnapshot) {
-          const processedSnapshot = {
-            ...sessionData.formSnapshot,
-            questions: sessionData.formSnapshot.questions
-              .map((question) => ({
-                ...question,
-                components: question.components.map((comp) => {
-                  if (comp.type === "text") {
-                    return {
-                      ...comp,
-                      text: {
-                        text: comp.text?.text || comp.text || "",
-                        format: {
-                          ...(comp.text?.format || comp.format || {}),
-                          bold:
-                            comp.text?.format?.bold ??
-                            comp.format?.bold ??
-                            false,
-                          italic:
-                            comp.text?.format?.italic ??
-                            comp.format?.italic ??
-                            false,
-                          align:
-                            comp.text?.format?.align ??
-                            comp.format?.align ??
-                            "left",
-                          size:
-                            comp.text?.format?.size ??
-                            comp.format?.size ??
-                            "text-base",
-                          color:
-                            comp.text?.format?.color ??
-                            comp.format?.color ??
-                            "text-gray-900",
-                          font:
-                            comp.text?.format?.font ??
-                            comp.format?.font ??
-                            "Arial",
-                        },
-                      },
-                    };
-                  }
-                  return comp;
-                }),
-              }))
-              .sort((a, b) => (a.order || 0) - (b.order || 0)),
-          };
+          // Check if we have cached processed form data
+          const cachedFormData = sessionStorage.getItem(`processedFormData_${sessionId}`);
+          let processedSnapshot;
+          
+          if (cachedFormData) {
+            try {
+              processedSnapshot = JSON.parse(cachedFormData);
+              console.log("Using cached processed form data");
+            } catch (error) {
+              console.warn("Error parsing cached form data, processing fresh data:", error);
+              processedSnapshot = processFormSnapshot(sessionData.formSnapshot);
+              sessionStorage.setItem(`processedFormData_${sessionId}`, JSON.stringify(processedSnapshot));
+            }
+          } else {
+            processedSnapshot = processFormSnapshot(sessionData.formSnapshot);
+            sessionStorage.setItem(`processedFormData_${sessionId}`, JSON.stringify(processedSnapshot));
+          }
           setFormData({ id: formId, ...processedSnapshot });
           setQuestions(processedSnapshot.questions || []);
         } else {
@@ -499,6 +559,10 @@ export const Quiz = () => {
         } else if (res === "incorrect") {
           newVals[comp.id] = "incorrect";
           allCorrect = false;
+        } else {
+          // Handle cases where the component might not have a clear correct/incorrect state
+          newVals[comp.id] = "unanswered";
+          allCorrect = false;
         }
       });
 
@@ -563,6 +627,16 @@ export const Quiz = () => {
       setSubmittingQuestions((prev) => ({ ...prev, [questionId]: false }));
     }
   };
+
+  // Cleanup cache when component unmounts
+  useEffect(() => {
+    return () => {
+      // Clear session cache when component unmounts
+      sessionStorage.removeItem(`sessionData_${sessionId}`);
+      sessionStorage.removeItem(`sessionCacheTime_${sessionId}`);
+      sessionStorage.removeItem(`processedFormData_${sessionId}`);
+    };
+  }, [sessionId]);
 
   if (loading) {
     return (

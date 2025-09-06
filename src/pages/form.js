@@ -72,7 +72,8 @@ const Form = () => {
       setWindowWidth(newWidth);
       setWindowHeight(newHeight);
 
-      if (newWidth < 576 && newWidth < newHeight) {
+      // Show orientation warning for mobile devices in portrait mode
+      if (newWidth < 768 && newWidth < newHeight) {
         setShowOrientationWarning(true);
       } else {
         setShowOrientationWarning(false);
@@ -297,7 +298,18 @@ const Form = () => {
       const widthScale = availableWidth / ORIGINAL_WIDTH;
       const heightScale = availableHeightForCanvas / ORIGINAL_HEIGHT;
       const newCanvasScale = Math.min(widthScale, heightScale, 1);
-      setCanvasScale(Math.max(0.3, newCanvasScale));
+      
+      // Enhanced mobile scaling with better minimum values
+      let finalScale = newCanvasScale;
+      if (windowWidth < 480) {
+        finalScale = Math.max(0.15, newCanvasScale); // Even smaller minimum for very small phones
+      } else if (windowWidth < 768) {
+        finalScale = Math.max(0.2, newCanvasScale);
+      } else {
+        finalScale = Math.max(0.3, newCanvasScale);
+      }
+      
+      setCanvasScale(finalScale);
 
       // Calculate available height for toolbar (space remaining after canvas)
       const availableHeightForToolbar =
@@ -308,9 +320,6 @@ const Form = () => {
         canvasActualHeight;
 
       const toolbarWidthScale = availableWidth / TOOLBAR_ORIGINAL_WIDTH;
-      //       const minToolbarHeight = 130;
-      // const toolbarContainerHeightClamped = Math.max(availableHeightForToolbar, minToolbarHeight);
-      // const toolbarHeightScale = toolbarContainerHeightClamped / TOOLBAR_ORIGINAL_HEIGHT;
       const toolbarHeightScale =
         (availableHeightForToolbar / TOOLBAR_ORIGINAL_HEIGHT) * 0.8;
       const newToolbarScale = Math.min(
@@ -318,7 +327,18 @@ const Form = () => {
         toolbarHeightScale,
         1
       );
-      setToolbarScale(Math.max(0.3, newToolbarScale));
+      
+      // Enhanced toolbar scaling for mobile
+      let finalToolbarScale = newToolbarScale;
+      if (windowWidth < 480) {
+        finalToolbarScale = Math.max(0.15, newToolbarScale);
+      } else if (windowWidth < 768) {
+        finalToolbarScale = Math.max(0.2, newToolbarScale);
+      } else {
+        finalToolbarScale = Math.max(0.3, newToolbarScale);
+      }
+      
+      setToolbarScale(finalToolbarScale);
     };
 
     calculateScales();
@@ -372,14 +392,28 @@ const Form = () => {
           </div>
           <h2 className="text-xl font-bold mb-2">Please Rotate Your Device</h2>
           <p className="text-center mb-4">
-            The form builder works best in landscape mode on mobile devices.
+            The form builder works best in landscape mode on mobile devices. This gives you more space to create and edit your forms.
           </p>
-          <button
-            onClick={() => setShowOrientationWarning(false)}
-            className="px-4 py-2 bg-white text-black font-medium rounded-lg"
-          >
-            Continue Anyway
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowOrientationWarning(false)}
+              className="px-4 py-2 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              Continue Anyway
+            </button>
+            <button
+              onClick={() => {
+                // Try to trigger orientation change
+                if (screen.orientation && screen.orientation.lock) {
+                  screen.orientation.lock('landscape');
+                }
+                setShowOrientationWarning(false);
+              }}
+              className="px-4 py-2 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Rotate Now
+            </button>
+          </div>
         </div>
       )}
 

@@ -113,11 +113,22 @@ const Canvas = forwardRef(
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [tempColor, setTempColor] = useState("#FFFFFF");
     const colorPickerRef = useRef(null);
+    const [zIndexes, setZIndexes] = useState({});
     // const [scale, setScale] = useState(1);
     const [viewportData, setViewportData] = useState({
       width: ORIGINAL_WIDTH,
       height: ORIGINAL_HEIGHT,
     });
+
+    const handleZIndexChange = (componentId) => {
+      setZIndexes(prev => {
+        const maxZIndex = Math.max(...Object.values(prev), 0);
+        return {
+          ...prev,
+          [componentId]: maxZIndex + 1
+        };
+      });
+    };
 
     useEffect(() => {
       if (question) {
@@ -241,13 +252,14 @@ const Canvas = forwardRef(
 
         const totalOffset = leftSidebarOffset + rightSidebarOffset;
         if (totalOffset !== 0) {
-          leftOffset = `calc(50% )`;
+          leftOffset = `calc(50% + ${totalOffset}px)`;
         }
       }
 
       return {
         left: leftOffset,
-        transform: `translateX(-50%) scale(${scale})`, // Add scale here
+        transform: `translateX(-50%) scale(${scale})`,
+        transformOrigin: "center center",
       };
     };
 
@@ -444,6 +456,8 @@ const Canvas = forwardRef(
                       handleDoubleClick();
                     },
                     scale: scale,
+                    zIndex: zIndexes[comp.id] || 0,
+                    onZIndexChange: handleZIndexChange,
                     onDoubleClick: (type, id, e) => {
                       if (e?.stopPropagation) {
                         e.stopPropagation();
