@@ -244,7 +244,7 @@ const ShortTextboxToolbar = ({
               <div className="flex gap-4">
                 <div className="flex flex-col gap-2">
                   {
-                    compType == "short_text" ??
+                    compType === "short_text" ??
                   <div className="flex gap-2">
                     {[
                       { type: "bullet", icon: <List className="h-6 w-6" /> },

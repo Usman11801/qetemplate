@@ -113,10 +113,9 @@ const MatchingPairsComponent = ({
       style={{
         width,
         height,
-        background: "transparent",
+        background: optionBackgroundColor,
         border: "none",
         boxShadow: "none",
-        background: optionBackgroundColor,
       }}
       className="group"
     >

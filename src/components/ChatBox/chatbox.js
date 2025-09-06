@@ -432,7 +432,7 @@ const ChatBox = ({ formId, onClose, onQuestionsAdded }) => {
       
       if (willGenerateQuiz) {
         const jsonMatch = responseContent.match(/```json\s*([\s\S]*?)\s*```/) || 
-                         responseContent.match(/```\s*([$$     \{][\s\S]*?[     $$\}])\s*```/) ||
+                         responseContent.match(/```\s*([$$     {][\s\S]*?[     $}])/g) ||
                          responseContent.match(/\[\s*\{\s*"backgroundColor"[\s\S]*\}\s*\]/);
         
         if (jsonMatch) {
@@ -471,8 +471,8 @@ const ChatBox = ({ formId, onClose, onQuestionsAdded }) => {
         const secondData = await secondResponse.json();
         const secondResponseContent = secondData.choices?.[0]?.message?.content || "";
         const secondJsonMatch = secondResponseContent.match(/```json\s*([\s\S]*?)\s*```/) || 
-                              secondResponseContent.match(/```\s*([\[\{][\s\S]*?[\]\}])\s*```/) ||
-                              secondResponseContent.match(/$$     \s*\{\s*"backgroundColor"[\s\S]*\}\s*     $$/);
+                              secondResponseContent.match(/```\s*([\[\{][\s\S]*?[\]\}])/g) ||
+                              secondResponseContent.match(/\$\$\s*\{\s*"backgroundColor"[\s\S]*\}\s*\$\$/);
         
         if (secondJsonMatch) {
           const jsonString = secondJsonMatch[1] || secondJsonMatch[0];

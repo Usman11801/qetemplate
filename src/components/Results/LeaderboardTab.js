@@ -342,7 +342,7 @@ const LeaderboardTab = ({ responses, respondentNames, questions }) => {
                 : '0'}
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              {leaderboardData.length > 0 && leaderboardData.sort((a, b) => b.totalScore - a.totalScore)[0]?.name || 'No participants'}
+              {(leaderboardData.length > 0 && leaderboardData.sort((a, b) => b.totalScore - a.totalScore)[0]?.name) || 'No participants'}
             </p>
           </div>
           

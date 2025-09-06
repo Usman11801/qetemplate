@@ -8,7 +8,7 @@ import ImageUpload from "../../../questiontemps/ImageUpload";
 import FormattedTextItem from "../../../questiontemps/FormattedTextItem";
 import MCSingleSelect from "../../../questiontemps/MCSingleSelect";
 import MCMultipleSelect from "../../../questiontemps/MCMultipleSelect";
-import LineComponent from "../../../questiontemps/LineComponent";
+// import LineComponent from "../../../questiontemps/LineComponent";
 import CurvedLineComponent from "../../../questiontemps/CurvedLineComponent";
 import ShortTextAnswer from "../../../questiontemps/ShortTextAnswer";
 import SingleCheckboxItem from "../../../questiontemps/SingleCheckboxItem";
@@ -115,10 +115,10 @@ const Canvas = forwardRef(
     const colorPickerRef = useRef(null);
     const [zIndexes, setZIndexes] = useState({});
     // const [scale, setScale] = useState(1);
-    const [viewportData, setViewportData] = useState({
-      width: ORIGINAL_WIDTH,
-      height: ORIGINAL_HEIGHT,
-    });
+    // const [viewportData, setViewportData] = useState({
+    //   width: ORIGINAL_WIDTH,
+    //   height: ORIGINAL_HEIGHT,
+    // });
 
     const handleZIndexChange = (componentId) => {
       setZIndexes(prev => {
@@ -387,8 +387,8 @@ const Canvas = forwardRef(
             <div
               className="relative mx-auto overflow-hidden  origin-top rounded-xl shadow-sm"
               style={{
-                width: `${viewportData.width}px`,
-                height: `${viewportData.height}px`,
+                width: `${ORIGINAL_WIDTH}px`,
+                height: `${ORIGINAL_HEIGHT}px`,
                 zIndex: 5,
                 transform: position.transform,
                 left: position.left,

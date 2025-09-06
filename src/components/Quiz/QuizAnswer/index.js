@@ -417,12 +417,11 @@ export const FormattedTextDisplay = ({ text: textProp, format: formatProp,compVa
         fontSize:compValues?.fontSize,
         fontFamily: compValues?.fontFamily,
         color: compValues?.fontColor,
-        textAlign: compValues?.textAlign,
+        textAlign: compValues?.textAlign || 'left',
         letterSpacing: compValues?.letterSpacing,
         lineHeight: compValues?.lineSpacing,
         fontWeight: compValues?.fontStyles?.bold ? "bold" : "normal",
         fontStyle: compValues?.fontStyles?.italic ? "italic" : "normal",
-          textAlign: compValues?.textAlign || 'left',
             textDecoration: textDecoration.join(" "),
       }}>
         {text || "(No text)"}

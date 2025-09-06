@@ -922,9 +922,7 @@ export const StaticShortTextAnswer = ({ value = "", componentValue, isAnswer = f
 
     <div className="bg-white rounded-md border border-gray-200"
       style={{
-        width: componentValue?.width, height: componentValue?.height, overflow: "hidden", boxSizing: "border-box", fontSize: componentValue?.fontSize, padding: 5, overflow: "hidden", border: "2px solid #cc",
-
-        boxSizing: "border-box",
+        width: componentValue?.width, height: componentValue?.height, overflow: "hidden", boxSizing: "border-box", fontSize: componentValue?.fontSize, padding: 5, border: "2px solid #cc",
         backgroundColor: "#fff",
       }}
     >
