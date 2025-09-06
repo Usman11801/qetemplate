@@ -404,8 +404,8 @@ const Form = () => {
             <button
               onClick={() => {
                 // Try to trigger orientation change
-                if (screen.orientation && screen.orientation.lock) {
-                  screen.orientation.lock('landscape');
+                if (typeof window !== 'undefined' && window.screen && window.screen.orientation && window.screen.orientation.lock) {
+                  window.screen.orientation.lock('landscape');
                 }
                 setShowOrientationWarning(false);
               }}
