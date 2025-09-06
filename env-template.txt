@@ -1,0 +1,31 @@
+# Copy this content to create your .env file
+# Firebase Configuration
+REACT_APP_FIREBASE_API_KEY=your_firebase_api_key_here
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id_here
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id_here
+REACT_APP_FIREBASE_APP_ID=your_app_id_here
+REACT_APP_FIREBASE_MEASUREMENT_ID=your_measurement_id_here
+
+# Stripe Configuration
+REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+STRIPE_PRICE_ID=price_your_stripe_price_id_here
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
+# SendGrid Configuration
+SENDGRID_API_KEY=SG.your_sendgrid_api_key_here
+
+# OpenAI Configuration
+REACT_APP_OPENAI_API_KEY=sk-your_openai_api_key_here
+
+# SendGrid Template Configuration
+SENDGRID_TEMPLATE_ID=d-7c3db50ed49a43a98cde6720394ccf04
+
+# Admin Email Configuration
+REACT_APP_ADMIN_EMAIL_1=aaronjeet.ss@gmail.com
+REACT_APP_ADMIN_EMAIL_2=joelbiju04@gmail.com
+
+# Application Configuration
+REACT_APP_FROM_EMAIL=info@qemplate.com

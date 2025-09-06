@@ -81,7 +81,7 @@ const Store = ({
   const lastManualNavigationRef = useRef(0);
 
   // Check if user is admin
-  const isAdmin = userEmail === "aaronjeet.ss@gmail.com" || userEmail === "joelbiju04@gmail.com";
+  const isAdmin = userEmail === process.env.REACT_APP_ADMIN_EMAIL_1 || userEmail === process.env.REACT_APP_ADMIN_EMAIL_2;
 
   // Categories with beautiful icons and colors
   const categories = [

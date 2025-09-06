@@ -60,8 +60,8 @@ exports.sendEmail = onCall(
      
     const msg = {
       to,
-      from: "info@qemplate.com",
-      templateId: "d-7c3db50ed49a43a98cde6720394ccf04",
+      from: process.env.REACT_APP_FROM_EMAIL || "info@qemplate.com",
+      templateId: process.env.SENDGRID_TEMPLATE_ID || "d-7c3db50ed49a43a98cde6720394ccf04",
       dynamicTemplateData: {
         prize_image_url: prize_image_url,
         custom_message: custom_message,

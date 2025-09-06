@@ -29,6 +29,13 @@
     "REACT_APP_FIREBASE_MEASUREMENT_ID": "@react_app_firebase_measurement_id",
     "SENDGRID_API_KEY": "@sendgrid_api_key",
     "STRIPE_SECRET_KEY": "@stripe_secret_key",
-    "STRIPE_PUBLISHABLE_KEY": "@stripe_publishable_key"
+    "REACT_APP_STRIPE_PUBLISHABLE_KEY": "@stripe_publishable_key",
+    "STRIPE_PRICE_ID": "@stripe_price_id",
+    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
+    "REACT_APP_OPENAI_API_KEY": "@openai_api_key",
+    "SENDGRID_TEMPLATE_ID": "@sendgrid_template_id",
+    "REACT_APP_ADMIN_EMAIL_1": "@admin_email_1",
+    "REACT_APP_ADMIN_EMAIL_2": "@admin_email_2",
+    "REACT_APP_FROM_EMAIL": "@from_email"
   }
 }

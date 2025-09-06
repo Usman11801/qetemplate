@@ -56,8 +56,8 @@ const Home = () => {
   const profileMenuRef = useRef(null);
 
   // Check if user is admin
-  const isAdmin = auth.currentUser?.email === "aaronjeet.ss@gmail.com" || 
-                  auth.currentUser?.email === "joelbiju04@gmail.com";
+  const isAdmin = auth.currentUser?.email === process.env.REACT_APP_ADMIN_EMAIL_1 || 
+                  auth.currentUser?.email === process.env.REACT_APP_ADMIN_EMAIL_2;
 
   // Load user data
   useEffect(() => {
@@ -66,7 +66,7 @@ const Home = () => {
         try {
           const data = await getUserData(auth.currentUser.uid);
           setUserData(data);
-          if (auth.currentUser.email === "aaronjeet.ss@gmail.com") {
+          if (auth.currentUser.email === process.env.REACT_APP_ADMIN_EMAIL_1) {
             setIsSuperUser(true);
           }
         } catch (error) {
