@@ -25,6 +25,7 @@ import SuccessOverlay from "../pages/successoverlay";
 
 import { useFormState } from "../hooks/useFormState";
 import { useToast } from "../components/Toast";
+import { getOptimalScale, shouldShowOrientationWarning, setupMobileOptimizations } from "../utils/mobileUtils";
 import LineToolBar from "../components/Form/Toolbar/lineToolBar";
 import CheckBoxToolBar from "../components/Form/Toolbar/checkBoxToolBar";
 import TrueFalseToolbar from "../components/Form/Toolbar/trueFalseToolbar";
@@ -72,12 +73,8 @@ const Form = () => {
       setWindowWidth(newWidth);
       setWindowHeight(newHeight);
 
-      // Show orientation warning for mobile devices in portrait mode
-      if (newWidth < 768 && newWidth < newHeight) {
-        setShowOrientationWarning(true);
-      } else {
-        setShowOrientationWarning(false);
-      }
+      // Use mobile utilities for orientation warning
+      setShowOrientationWarning(shouldShowOrientationWarning());
 
       if (newWidth < 768 && (isLeftSidebarOpen || isRightSidebarOpen)) {
         setIsLeftSidebarOpen(false);
@@ -178,6 +175,9 @@ const Form = () => {
     `;
     document.head.appendChild(styleTag);
 
+    // Setup mobile optimizations
+    setupMobileOptimizations();
+
     return () => {
       document.head.removeChild(styleTag);
     };
@@ -260,8 +260,8 @@ const Form = () => {
   useEffect(() => {
     const calculateScales = () => {
       const topNavHeight = 72;
-      const availablePadding = 24;
-      const maxAttemptBoxHeight = 68;
+      const availablePadding = 12; // Further reduced padding for better space utilization
+      const maxAttemptBoxHeight = 60; // Reduced height
 
       // Calculate available width excluding sidebars and padding
       let availableWidth = windowWidth;
@@ -273,20 +273,14 @@ const Form = () => {
       }
       availableWidth -= availablePadding * 2;
 
-      // Toolbar dynamic height
+      // Toolbar dynamic height - use a more conservative estimate
       let bottomToolbarHeight = TOOLBAR_ORIGINAL_HEIGHT;
       if (toolbarRef.current) {
         bottomToolbarHeight =
           toolbarRef.current.offsetHeight || TOOLBAR_ORIGINAL_HEIGHT;
       }
 
-      // Canvas current height (unscaled)
-      let canvasActualHeight = ORIGINAL_HEIGHT;
-      if (canvasRef.current) {
-        canvasActualHeight = canvasRef.current.offsetHeight || ORIGINAL_HEIGHT;
-      }
-
-      // Calculate available height for canvas
+      // Calculate available height for canvas with better space management
       const availableHeightForCanvas =
         windowHeight -
         topNavHeight -
@@ -294,22 +288,27 @@ const Form = () => {
         maxAttemptBoxHeight -
         availablePadding * 2;
 
-      // Canvas scale (fit inside available width and height)
-      const widthScale = availableWidth / ORIGINAL_WIDTH;
-      const heightScale = availableHeightForCanvas / ORIGINAL_HEIGHT;
-      const newCanvasScale = Math.min(widthScale, heightScale, 1);
-      
-      // Enhanced mobile scaling with better minimum values
-      let finalScale = newCanvasScale;
-      if (windowWidth < 480) {
-        finalScale = Math.max(0.15, newCanvasScale); // Even smaller minimum for very small phones
-      } else if (windowWidth < 768) {
-        finalScale = Math.max(0.2, newCanvasScale);
-      } else {
-        finalScale = Math.max(0.3, newCanvasScale);
-      }
+      // Use mobile utilities for optimal scaling with more aggressive minimums
+      const finalScale = getOptimalScale(
+        ORIGINAL_WIDTH, 
+        ORIGINAL_HEIGHT, 
+        availableWidth, 
+        availableHeightForCanvas,
+        0.1 // Very low minimum scale
+      );
       
       setCanvasScale(finalScale);
+      
+      // Debug logging
+      console.log('Form scaling debug:', {
+        windowWidth,
+        windowHeight,
+        availableWidth,
+        availableHeightForCanvas,
+        finalScale,
+        originalWidth: ORIGINAL_WIDTH,
+        originalHeight: ORIGINAL_HEIGHT
+      });
 
       // Calculate available height for toolbar (space remaining after canvas)
       const availableHeightForToolbar =
@@ -317,25 +316,29 @@ const Form = () => {
         topNavHeight -
         maxAttemptBoxHeight -
         availablePadding * 2 -
-        canvasActualHeight;
+        (ORIGINAL_HEIGHT * finalScale);
 
       const toolbarWidthScale = availableWidth / TOOLBAR_ORIGINAL_WIDTH;
       const toolbarHeightScale =
-        (availableHeightForToolbar / TOOLBAR_ORIGINAL_HEIGHT) * 0.8;
+        (availableHeightForToolbar / TOOLBAR_ORIGINAL_HEIGHT) * 0.95; // Increased from 0.9
       const newToolbarScale = Math.min(
         toolbarWidthScale,
         toolbarHeightScale,
         1
       );
       
-      // Enhanced toolbar scaling for mobile
+      // Enhanced toolbar scaling for mobile with better minimums
       let finalToolbarScale = newToolbarScale;
-      if (windowWidth < 480) {
+      if (windowWidth < 360) {
         finalToolbarScale = Math.max(0.15, newToolbarScale);
-      } else if (windowWidth < 768) {
+      } else if (windowWidth < 480) {
         finalToolbarScale = Math.max(0.2, newToolbarScale);
-      } else {
+      } else if (windowWidth < 768) {
+        finalToolbarScale = Math.max(0.25, newToolbarScale);
+      } else if (windowWidth < 1024) {
         finalToolbarScale = Math.max(0.3, newToolbarScale);
+      } else {
+        finalToolbarScale = Math.max(0.4, newToolbarScale);
       }
       
       setToolbarScale(finalToolbarScale);
@@ -366,38 +369,39 @@ const Form = () => {
       />
 
       {showOrientationWarning && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 z-[100] flex flex-col items-center justify-center text-white p-6">
-          <div className="transform rotate-90 mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-95 z-[100] flex flex-col items-center justify-center text-white p-6">
+          <div className="transform rotate-90 mb-6 animate-pulse">
             <svg
-              width="64"
-              height="64"
+              width="80"
+              height="80"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              className="text-white"
             >
               <path
                 d="M4 5C4 4.44772 4.44772 4 5 4H19C19.5523 4 20 4.44772 20 5V19C20 19.5523 19.5523 20 19 20H5C4.44772 20 4 19.5523 4 19V5Z"
-                stroke="white"
+                stroke="currentColor"
                 strokeWidth="2"
               />
               <path
                 d="M9 16L15 8"
-                stroke="white"
+                stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
               />
-              <circle cx="9" cy="8" r="1" fill="white" />
-              <circle cx="15" cy="16" r="1" fill="white" />
+              <circle cx="9" cy="8" r="1" fill="currentColor" />
+              <circle cx="15" cy="16" r="1" fill="currentColor" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold mb-2">Please Rotate Your Device</h2>
-          <p className="text-center mb-4">
-            The form builder works best in landscape mode on mobile devices. This gives you more space to create and edit your forms.
+          <h2 className="text-2xl font-bold mb-3 text-center">Rotate Your Device</h2>
+          <p className="text-center mb-6 text-lg leading-relaxed max-w-sm">
+            For the best form building experience, please rotate your device to landscape mode. This provides more space for creating and editing forms.
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
             <button
               onClick={() => setShowOrientationWarning(false)}
-              className="px-4 py-2 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 transition-colors"
+              className="flex-1 px-6 py-3 bg-gray-600 text-white font-medium rounded-xl hover:bg-gray-700 transition-colors"
             >
               Continue Anyway
             </button>
@@ -405,11 +409,14 @@ const Form = () => {
               onClick={() => {
                 // Try to trigger orientation change
                 if (typeof window !== 'undefined' && window.screen && window.screen.orientation && window.screen.orientation.lock) {
-                  window.screen.orientation.lock('landscape');
+                  window.screen.orientation.lock('landscape').catch(() => {
+                    // Fallback if orientation lock fails
+                    console.log('Orientation lock not supported');
+                  });
                 }
                 setShowOrientationWarning(false);
               }}
-              className="px-4 py-2 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex-1 px-6 py-3 bg-white text-black font-medium rounded-xl hover:bg-gray-100 transition-colors"
             >
               Rotate Now
             </button>

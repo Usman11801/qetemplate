@@ -8,6 +8,7 @@ import {
   ChevronRight,
   RotateCw,
 } from "lucide-react";
+import { getOptimalScale, shouldShowOrientationWarning, setupMobileOptimizations } from "../../utils/mobileUtils";
 import ResizableComponent from "./ResizeableComponent";
 import { defaultSizes } from "./QuizTheme";
 import FeedbackIndicator from "./FeedbackIndicator";
@@ -55,39 +56,49 @@ const QuestionCard = ({
       setWindowWidth(newWidth);
       setWindowHeight(newHeight);
 
-      const headerFooterSpace = 120;
-      const availableWidth = newWidth - 8;
-      const availableHeight = newHeight - headerFooterSpace;
+      // Calculate available space more accurately for single view
+      const headerHeight = 60; // Reduced quiz header height
+      const footerHeight = 50; // Reduced submit button area height
+      const padding = 12; // Reduced overall padding
+      const questionHeaderHeight = 80; // Reduced question title and info area
+      
+      const availableWidth = newWidth - (padding * 2);
+      const availableHeight = newHeight - headerHeight - footerHeight - questionHeaderHeight - (padding * 2);
 
-      const widthScale = Math.min(availableWidth, 800) / CANVAS_WIDTH;
-      const heightScale = Math.min(availableHeight, 650) / CANVAS_HEIGHT;
+      // Ensure we have minimum usable space but be more aggressive about fitting
+      const minUsableHeight = Math.max(availableHeight, 150);
+      const minUsableWidth = Math.max(availableWidth, 250);
 
-      let scaleFactor = Math.min(widthScale, heightScale);
-
-      if (newHeight < 500 && newWidth > newHeight) {
-        scaleFactor = Math.max(scaleFactor, 0.85);
-      } else if (newWidth < 480) {
-        scaleFactor = Math.max(scaleFactor, 0.8);
-      } else if (newWidth < 768) {
-        scaleFactor = Math.max(scaleFactor, 0.9);
-      } else if (newWidth < 1024) {
-        scaleFactor = Math.max(scaleFactor, 0.9);
-      }
-
-      scaleFactor = Math.min(scaleFactor, 1);
+      // Use mobile utilities for optimal scaling
+      const scaleFactor = getOptimalScale(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        minUsableWidth,
+        minUsableHeight
+      );
 
       setCanvasScale(scaleFactor);
+      
+      // Debug logging
+      console.log('Quiz scaling debug:', {
+        newWidth,
+        newHeight,
+        availableWidth,
+        availableHeight,
+        scaleFactor,
+        canvasWidth: CANVAS_WIDTH,
+        canvasHeight: CANVAS_HEIGHT
+      });
 
-      const isPhone = newWidth < 768;
-      if (isPhone && newWidth < newHeight) {
-        setShowOrientationWarning(true);
-      } else {
-        setShowOrientationWarning(false);
-      }
+      // Use mobile utilities for orientation warning
+      setShowOrientationWarning(shouldShowOrientationWarning());
     };
 
     window.addEventListener("resize", handleResize);
     handleResize();
+
+    // Setup mobile optimizations
+    setupMobileOptimizations();
 
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -113,36 +124,35 @@ const QuestionCard = ({
     >
       {showOrientationWarning && (
         <div className="fixed inset-0 bg-black bg-opacity-95 z-[100] flex flex-col items-center justify-center text-white p-6">
-          <div className="transform mb-4">
+          <div className="transform mb-6 animate-pulse">
             <RotateCw
-              size={64}
-              className="rotate-90 text-white animate-pulse"
+              size={80}
+              className="rotate-90 text-white"
             />
           </div>
-          <h2 className="text-xl font-bold mb-2">Please Rotate Your Device</h2>
-          <p className="text-center mb-4">
-            This quiz requires landscape mode to properly display questions and
-            interact with components.
+          <h2 className="text-2xl font-bold mb-3 text-center">Rotate Your Device</h2>
+          <p className="text-center mb-6 text-lg leading-relaxed max-w-sm">
+            For the best quiz experience, please rotate your device to landscape mode. This ensures all question components are properly visible and interactive.
           </p>
-          <p className="text-center text-indigo-300 text-sm">
-            <Clock size={16} className="inline mr-1" />
-            Rotate your device to continue
-          </p>
+          <div className="flex items-center text-indigo-300 text-sm">
+            <Clock size={16} className="mr-2" />
+            <span>Rotate your device to continue</span>
+          </div>
         </div>
       )}
 
-      <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 p-3 sm:p-6 border-b border-indigo-100">
+      <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 p-2 sm:p-4 border-b border-indigo-100">
         <div className="flex justify-between items-start">
           <div>
-            <div className="inline-flex items-center gap-2 mb-1 sm:mb-2 text-indigo-700 bg-white px-2 py-1 sm:px-3 sm:py-1 rounded-full shadow-sm border border-indigo-200">
-              <span className="font-medium text-sm sm:text-base">
-                Question {index + 1}
+            <div className="inline-flex items-center gap-1 mb-1 text-indigo-700 bg-white px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm border border-indigo-200">
+              <span className="font-medium text-xs sm:text-sm">
+                Q{index + 1}
               </span>
-              <span className="text-xs bg-indigo-100 px-1 py-0.5 sm:px-2 sm:py-0.5 rounded-full">
-                {question.points} pts
+              <span className="text-xs bg-indigo-100 px-1 py-0.5 rounded-full">
+                {question.points}pts
               </span>
             </div>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+            <h2 className="text-sm sm:text-lg font-bold text-gray-800 line-clamp-2">
               {question.title || `Question ${index + 1}`}
             </h2>
           </div>
@@ -219,16 +229,17 @@ const QuestionCard = ({
         </div>
       )}
 
-      <div className="relative px-0 py-1 flex justify-center canvas-wrapper">
+      <div className="relative px-2 py-2 flex justify-center canvas-wrapper">
         <div
           className="mx-auto relative canvas-container flex justify-center items-center"
           style={{
-            minHeight: "150px",
+            minHeight: "120px",
             width: "100%",
             maxWidth: `${CANVAS_WIDTH}px`,
             aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}`,
             backgroundColor: backgroundColor,
             overflow: "visible",
+            position: "relative",
           }}
         >
           <div
@@ -242,6 +253,7 @@ const QuestionCard = ({
               top: "50%",
               marginLeft: `-${CANVAS_WIDTH / 2}px`,
               marginTop: `-${CANVAS_HEIGHT / 2}px`,
+              willChange: "transform",
             }}
           >
             {question.components?.map((comp) => {
@@ -831,22 +843,22 @@ const QuestionCard = ({
         </div>
       </div>
 
-      <div className="p-3 sm:p-6 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
-        <div className="text-xs sm:text-sm text-gray-500">
+      <div className="p-2 sm:p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+        <div className="text-xs text-gray-500">
           {attemptsLeft > 0 && !alreadyCorrect ? (
             <span className="flex items-center">
-              <Clock size={14} className="mr-1" />
-              {attemptsLeft} attempt{attemptsLeft !== 1 ? "s" : ""} left
+              <Clock size={12} className="mr-1" />
+              {attemptsLeft} left
             </span>
           ) : alreadyCorrect ? (
             <span className="flex items-center text-emerald-600">
-              <Check size={14} className="mr-1" />
+              <Check size={12} className="mr-1" />
               Complete
             </span>
           ) : (
             <span className="flex items-center text-red-600">
-              <X size={14} className="mr-1" />
-              No attempts left
+              <X size={12} className="mr-1" />
+              No attempts
             </span>
           )}
         </div>
@@ -854,7 +866,7 @@ const QuestionCard = ({
         <button
           onClick={() => handleSubmitQuestion(question.id)}
           disabled={submitDisabled || submittingQuestions[question.id]}
-          className={`flex items-center gap-1 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-sm sm:text-base transition-all ${submitDisabled || submittingQuestions[question.id]
+          className={`flex items-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${submitDisabled || submittingQuestions[question.id]
             ? "bg-gray-200 text-gray-500 cursor-not-allowed"
             : "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
             }`}

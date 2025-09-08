@@ -380,11 +380,15 @@ export default function RankingComponent({
 
   useEffect(() => {
     const off = () => setReorderMode(false);
+    
     window.addEventListener("mouseup", off);
     window.addEventListener("touchend", off);
+    window.addEventListener("touchcancel", off);
+    
     return () => {
       window.removeEventListener("mouseup", off);
       window.removeEventListener("touchend", off);
+      window.removeEventListener("touchcancel", off);
     };
   }, []);
 
@@ -558,6 +562,10 @@ export default function RankingComponent({
                   marginBottom: optionSpacing,
                   cursor: reorderMode ? "grab" : "default",
                   userSelect: reorderMode ? "none" : "auto",
+                  touchAction: "none",
+                  WebkitUserSelect: "none",
+                  MozUserSelect: "none",
+                  msUserSelect: "none",
                 }}
                 draggable={reorderMode}
                 // onDragStart={(e) => {
@@ -578,9 +586,11 @@ export default function RankingComponent({
                 onDragStart={(e) => {
                   if (!reorderMode) return;
                   e.stopPropagation();
-                  setReorderMode(true); // disable parent drag
+                  setReorderMode(true);
                   e.dataTransfer.setData("text/plain", String(idx));
                   e.dataTransfer.effectAllowed = "move";
+                  // Add visual feedback
+                  e.target.style.opacity = "0.5";
                 }}
                 onDragOver={(e) => {
                   if (!reorderMode) return;
@@ -593,27 +603,46 @@ export default function RankingComponent({
                   e.preventDefault();
                   handleDrop(e, idx);
                   e.stopPropagation();
-                  setReorderMode(false); // re-enable parent drag
+                  setReorderMode(false);
                 }}
                 onDragEnd={(e) => {
-                  setReorderMode(false); // make sure parent drag is re-enabled
+                  setReorderMode(false);
+                  // Remove visual feedback
+                  e.target.style.opacity = "1";
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  setReorderMode(true);
+                }}
+                onTouchEnd={(e) => {
+                  e.stopPropagation();
+                  setReorderMode(false);
                 }}
                 data-nodrag="true"
               >
                 <GripVertical
                   size={computedFontSize}
-                  className={`text-gray-400 ${reorderMode ? "cursor-grabbing focus:outline-none focus:ring-0" : "cursor-grab"}`}
+                  className={`text-gray-400 ${reorderMode ? "cursor-grabbing focus:outline-none focus:ring-0" : "cursor-grab"} touch-manipulation`}
                   onMouseDown={(e) => {
                     e.stopPropagation();
                     setReorderMode(true);
                   }}
                   onTouchStart={(e) => {
-                    e.preventDefault();
                     e.stopPropagation();
                     setReorderMode(true);
                   }}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                  }}
                   tabIndex={0}
                   data-nodrag="true"
+                  style={{ 
+                    touchAction: 'none',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none'
+                  }}
                 />
 
                 {showNumber && <span className="w-6 text-right select-none">{idx + 1}.</span>}
@@ -635,6 +664,11 @@ export default function RankingComponent({
                     textDecoration,
                     fontSize: computedFontSize,
                     minWidth: inputMinWidth,
+                    touchAction: "manipulation",
+                    WebkitUserSelect: "text",
+                    MozUserSelect: "text",
+                    msUserSelect: "text",
+                    userSelect: "text",
                   }}
                   disabled={reorderMode}
                 />

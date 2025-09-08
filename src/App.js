@@ -17,6 +17,9 @@ import { TouchBackend } from "react-dnd-touch-backend";
 // Toasts
 import { ToastProvider } from "./components/Toast";
 
+// Debug component
+import ResponsiveDebug from "./components/ResponsiveDebug";
+
 // Loading page
 import Loading from "./pages/loading";
 
@@ -205,7 +208,10 @@ const HomeRedirect = () => {
 };
 
 function App() {
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  // Better mobile detection including tablets and touch devices
+  const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   ('ontouchstart' in window) || 
+                   (navigator.maxTouchPoints > 0);
   const backend = isMobile ? TouchBackend : HTML5Backend;
 
   // Add error boundary and debugging
@@ -348,6 +354,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
+        <ResponsiveDebug />
       </ToastProvider>
     </DndProvider>
     );

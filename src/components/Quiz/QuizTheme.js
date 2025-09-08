@@ -96,5 +96,14 @@ export const getComponentStyle = (comp, defWidth, defHeight) => {
     height,
     display: "block",
     transition: "all 0.2s ease",
+    // Ensure proper scaling behavior
+    transformOrigin: "top left",
+    willChange: "transform",
+    // Add touch support
+    touchAction: "manipulation",
+    WebkitUserSelect: "none",
+    MozUserSelect: "none",
+    msUserSelect: "none",
+    userSelect: "none",
   };
 };

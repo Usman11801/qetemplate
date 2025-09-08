@@ -144,6 +144,8 @@ const BaseDraggable = ({
       onDragStop={handleDragStop}
       onResizeStop={handleResizeStop}
       onTouchStart={handleClick}
+      touchAction="none"
+      enableTouch={true}
       minWidth={minWidth}
       minHeight={minHeight}
       maxHeight={maxHeight}
@@ -151,7 +153,7 @@ const BaseDraggable = ({
       enableResizing={{
         bottomRight: true,
       }}
-      cancel="input, button, [data-nodrag], .no-drag, textarea, select" // Prevent dragging on interactive elements
+      cancel="input, button, [data-nodrag], .no-drag, textarea, select, .touch-manipulation" // Prevent dragging on interactive elements
       resizeHandleStyles={{
         bottomRight: { cursor: "se-resize" },
       }}

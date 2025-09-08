@@ -242,22 +242,9 @@ const Canvas = forwardRef(
     const handleScrollCapture = (e) => e.stopPropagation();
 
     const calculatePosition = () => {
-      let leftOffset = "50%";
-
-      if (windowWidth < 768) {
-        leftOffset = "50%";
-      } else {
-        const leftSidebarOffset = isLeftSidebarOpen ? leftSidebarWidth / 2 : 0;
-        const rightSidebarOffset = isRightSidebarOpen ? -32 : 0; // 64px / 2
-
-        const totalOffset = leftSidebarOffset + rightSidebarOffset;
-        if (totalOffset !== 0) {
-          leftOffset = `calc(50% + ${totalOffset}px)`;
-        }
-      }
-
+      // Always center the canvas regardless of sidebar state
       return {
-        left: leftOffset,
+        left: "50%",
         transform: `translateX(-50%) scale(${scale})`,
         transformOrigin: "center center",
       };
@@ -385,7 +372,7 @@ const Canvas = forwardRef(
             onDoubleClick={() => handleDoubleClick()}
           >
             <div
-              className="relative mx-auto overflow-hidden  origin-top rounded-xl shadow-sm"
+              className="relative mx-auto overflow-visible rounded-xl shadow-sm"
               style={{
                 width: `${ORIGINAL_WIDTH}px`,
                 height: `${ORIGINAL_HEIGHT}px`,
@@ -393,6 +380,8 @@ const Canvas = forwardRef(
                 transform: position.transform,
                 left: position.left,
                 transformOrigin: position.transformOrigin,
+                willChange: "transform",
+                position: "relative",
               }}
               onWheel={handleWheel}
             >
@@ -401,7 +390,7 @@ const Canvas = forwardRef(
                   formRef.current = node;
                   drop(node);
                 }}
-                className={`absolute top-0 left-0  bg-red-500  ${
+                className={`absolute top-0 left-0 ${
                   isOver ? "ring-2 ring-blue-400" : ""
                   }`}
                 style={{

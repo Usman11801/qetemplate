@@ -12,37 +12,57 @@ const responsiveStyles = `
   .canvas-wrapper {
     width: 100%;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   
   .canvas-container {
     overflow: visible !important;
     transition: all 0.3s ease-out;
+    position: relative;
   }
   
   /* Better component positioning */
   .question-component {
     transform-origin: center center;
+    touch-action: manipulation;
   }
   
-  /* Ensure text stays readable on small screens */
-  @media (max-width: 480px) {
+  /* Enhanced mobile touch support */
+  @media (max-width: 768px) {
+    .question-component {
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
     .question-component input,
     .question-component button,
     .question-component select,
     .question-component textarea {
       font-size: 16px !important; /* Prevent browser zoom on input fields */
+      touch-action: manipulation;
     }
     
     .question-component label,
     .question-component span {
       font-size: 14px !important;
     }
+    
+    /* Better touch targets */
+    button, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
   
   /* Optimize for landscape phones */
-  @media (max-height: 480px) and (orientation: landscape) {
+  @media (max-height: 500px) and (orientation: landscape) {
     .quiz-header, .quiz-footer {
-      padding: 4px !important;
+      padding: 8px !important;
       margin: 0 !important;
     }
     
@@ -51,15 +71,19 @@ const responsiveStyles = `
       margin: 0 !important;
     }
     
-    /* Increase text sizes on mobile */
+    /* Increase text sizes on mobile landscape */
     .question-component input,
     .question-component button,
     .question-component select,
     .question-component span,
     .question-component label {
-      font-size: 120% !important;
-      border-width: 0 !important;
-      border-color: transparent !important;
+      font-size: 16px !important;
+    }
+    
+    /* Better touch targets for landscape */
+    button, [role="button"] {
+      min-height: 48px;
+      padding: 12px 16px;
     }
   }
   
@@ -67,6 +91,7 @@ const responsiveStyles = `
   body.quiz-active {
     overflow-x: hidden;
     max-width: 100vw;
+    position: relative;
   }
   
   /* Extra styling for quiz card */
@@ -99,6 +124,32 @@ const responsiveStyles = `
   @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
     .canvas-wrapper {
       padding-bottom: 1rem;
+    }
+  }
+  
+  /* Very small screens optimization */
+  @media (max-width: 360px) {
+    .question-component input,
+    .question-component button,
+    .question-component select,
+    .question-component textarea {
+      font-size: 14px !important;
+    }
+    
+    .question-component label,
+    .question-component span {
+      font-size: 12px !important;
+    }
+  }
+  
+  /* Improve drag and drop on mobile */
+  @media (max-width: 768px) {
+    [data-draggable="true"], .draggable {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
     }
   }
 `;
